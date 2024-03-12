@@ -1,54 +1,62 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import WeatherBG from "../assets/weatherBG.jpg";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import CircularProgress from "@mui/material/CircularProgress";
+import { Weather } from "../App";
 
 const WeatherSearch = () => {
   const [cityName, setCityName] = useState("");
   const [refetch, setRefetch] = useState(false);
-  const [error, setError] = useState("");
-  const [cityData, setCityData] = useState([]);
-  const [alreadySearchData, setAlreadySearchData] = useState([{}]);
+  const [error, setError] = useState("ssssssss");
+  const [loader, setLoader] = useState(false);
+
+  const { alreadySearchData, setAlreadySearchData } = useContext(Weather);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // if we have already searched the city, reuse previous data
     const THIRTY_MINUTES = 30 * 60 * 1000;
-
     const currentTime = new Date();
 
     const filteredData = alreadySearchData.filter((item) => {
-      // Check if the city name matches partially and the data is not older than 30 minutes
       const cityNameLowerCase = cityName.toLowerCase();
-
       const isMatchingCity = item?.data?.city_name
         ?.toLowerCase()
         .includes(cityNameLowerCase);
-
       const isWithin30Minutes =
         currentTime - new Date(item?.fetchTime) <= THIRTY_MINUTES;
-
       return isMatchingCity && isWithin30Minutes;
     });
 
-    if (filteredData.length !== 0) {
-      setCityData(filteredData);
+    if (cityName && filteredData.length !== 0) {
+      setLoader(true);
+      navigate("/weatherDetails", {
+        state: { cityData: [filteredData[0].data] },
+      });
+      setLoader(false);
     } else if (cityName) {
       const getResponse = async () => {
+        setLoader(true);
         try {
+          // can hide the url in env
           const response = await axios.get(
-            `https://api.weatherbit.io/v2.0/history/energy?city=${cityName},IN&start_date=2024-03-2&end_date=2024-03-12&threshold=63&units=I&key=8ff6b1c427824112b02b9f92f1485bbb&tp=daily`
+            `https://api.weatherbit.io/v2.0/history/energy?city=${cityName}&start_date=2024-03-5&end_date=2024-03-12&threshold=63&units=M&key=8ff6b1c427824112b02b9f92f1485bbb&tp=daily`
           );
-          setCityData([response.data]);
-          setAlreadySearchData((prev) => [
-            ...prev,
-            { data: response.data, fetchTime: new Date() },
-          ]);
+          const newData = { data: response.data, fetchTime: new Date() };
+          setAlreadySearchData((prev) => [...prev, newData]);
+          navigate("/weatherDetails", {
+            state: { cityData: [response.data] },
+          });
         } catch (error) {
+          console.error("Failed to fetch data:", error);
           setError("Failed to fetch data");
         }
+        setLoader(false);
       };
       getResponse();
+    }else {
+      setError("Please enter city name")
     }
   }, [refetch]);
 
@@ -88,9 +96,12 @@ const WeatherSearch = () => {
         }}
       >
         <TextField
-          onChange={(e) => setCityName(e.target.value)}
+          onChange={(e) => {
+            setCityName(e.target.value);
+            setError("");
+          }}
           id="outlined-basic"
-          label="Enter a city"
+          placeholder="Enter a city"
           variant="outlined"
           sx={{
             background: "white",
@@ -98,24 +109,45 @@ const WeatherSearch = () => {
               color: "black",
               borderBottom: "1px solid black",
             },
-            width: "120%",
-            marginBottom: 2,
+            width: "140%",
           }}
         />
+        {error && (
+          <Typography
+            sx={{
+              fontSize: "12px",
+              color: "#800000",
+              fontWeight: "600",
+              width: "120%",
+            }}
+          >
+            {error}
+          </Typography>
+        )}
         <Button
-          onClick={() => setRefetch(!refetch)}
+          onClick={() => {
+            setRefetch(!refetch);
+            setError("");
+          }}
           variant="outlined"
           sx={{
             borderColor: "white",
             color: "black",
             width: "12rem",
+            marginTop: 2,
           }}
         >
           Get Weather
         </Button>
-        <Link to="/weatherDetails" state={{ cityData }}>
-          {/* Moved the Link outside of the Button */}
-        </Link>
+
+        {loader && (
+          <Box
+            sx={{ display: "flex", gap: 4, alignItems: "center", marginTop: 2 }}
+          >
+            <CircularProgress color="inherit" />
+            <Typography>Fetching data...</Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );
