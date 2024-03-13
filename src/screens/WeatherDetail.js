@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import WeatherBG from "../assets/detailWeatherBG.jpg";
-import { Box, Typography, Grid } from "@mui/material";
+import { Box, Typography, Grid, Button } from "@mui/material";
 import { CiCloudOn } from "react-icons/ci";
 import { FaSun } from "react-icons/fa";
 import { FaCloudRain } from "react-icons/fa";
@@ -60,8 +60,9 @@ const WeatherDetail = () => {
         position: "relative",
       }}
     >
-      <Typography
+      <Button
         onClick={() => navigate("/")}
+        variant="outlined"
         sx={{
           cursor: "pointer",
           position: "absolute",
@@ -73,7 +74,7 @@ const WeatherDetail = () => {
         }}
       >
         Go back
-      </Typography>
+      </Button>
       <Typography
         sx={{
           color: "white",

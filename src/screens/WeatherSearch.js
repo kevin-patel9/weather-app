@@ -9,7 +9,7 @@ import { Weather } from "../App";
 const WeatherSearch = () => {
   const [cityName, setCityName] = useState("");
   const [refetch, setRefetch] = useState(false);
-  const [error, setError] = useState("ssssssss");
+  const [error, setError] = useState("");
   const [loader, setLoader] = useState(false);
 
   const { alreadySearchData, setAlreadySearchData } = useContext(Weather);
@@ -55,9 +55,9 @@ const WeatherSearch = () => {
         setLoader(false);
       };
       getResponse();
-    }else {
+    }else if (!cityName && refetch)
       setError("Please enter city name")
-    }
+
   }, [refetch]);
 
   return (
