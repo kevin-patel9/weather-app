@@ -1,17 +1,30 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { StyleSheet, Text, SafeAreaView, View, ScrollView, FlatList } from "react-native";
+import { StyleSheet, Text, SafeAreaView, View, ScrollView, FlatList, TouchableOpacity } from "react-native";
 import { getWeatherDetails } from "../../Api/WeatherApi";
 import { CityList, selectedLocality } from "../../common/localityList";
 import { Dropdown } from "react-native-element-dropdown";
 import { dateConversion, dayTime } from "./components/DateConversion";
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { StatusBar } from "expo-status-bar";
+import NetInfo from "@react-native-community/netinfo";
 
 const SearchScreen = () => {
     const [selectedCity, setSelectedCity] = useState("");
     const [selectedArea, setSelectedArea] = useState({ label: "", value: "", localityId: "" });
     const [weatherToShow, setWeatherToShow] = useState();
     const [storePrevWeather, setStorePrevWeather] = useState([]);
+    const [connection, setConnection] = useState(false);
     const [day] = useState(dayTime());
+
+    useEffect(() => {
+        const unsubscribe = NetInfo.addEventListener((state) => {
+            setConnection(state.isConnected);
+        });
+
+        return () => {
+            unsubscribe();
+        }
+    },[]);
 
     const fetchWeatherData = useCallback(async () => {
         if (!selectedArea?.localityId) return;
@@ -61,6 +74,12 @@ const SearchScreen = () => {
 
     return (
         <SafeAreaView style={styles.screenTexture}>
+            <StatusBar backgroundColor="#100f19" />
+            {!connection &&
+                <View style={styles.banner}>
+                    <Text style={styles.text}>Connection lost</Text>
+                </View>
+            }
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }}
                 showsVerticalScrollIndicator={false}
             >
@@ -111,12 +130,6 @@ const SearchScreen = () => {
                         )}
                     />
                 }
-                {/* <LottieView
-                    autoPlay
-                    ref={animation}
-                    style={{ height: 200, width: 100 }}
-                    source={require("../../assets/giphy.gif")}
-                />  */}
                 <Text style={{ color: "white", fontFamily: "poppinsMedium" }}>
                     {weatherToShow?.city}
                 </Text>
@@ -213,7 +226,7 @@ export default SearchScreen;
 
 const styles = StyleSheet.create({
     screenTexture: {
-        paddingTop: 69, 
+        paddingTop: 56, 
         padding: 20, 
         flex: 1, 
         backgroundColor: "#100f19"
@@ -260,5 +273,20 @@ const styles = StyleSheet.create({
         marginVertical: 20, 
         backgroundColor: "white"  ,
         height: 46
+    },
+    banner: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#ff4444',
+        padding: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    text: {
+        color: 'white',
+        fontSize: 18,
     }
 })

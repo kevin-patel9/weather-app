@@ -2,18 +2,21 @@ import SearchScreen from "./Screens/Search/SearchScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Font from "expo-font";
+import { useEffect } from "react";
 
 const App = () => {
 
   const Stack = createNativeStackNavigator();
 
-  (async () => {
-    await Font.loadAsync({
+  useEffect(() => {
+    (async () => {
+      await Font.loadAsync({
         poppinsRegular: require("./assets/Fonts/Poppins-Regular.ttf"),
         poppinsBold: require("./assets/Fonts/Poppins-Bold.ttf"),
         poppinsMedium: require("./assets/Fonts/Poppins-Medium.ttf"),
-    });
-  })();
+      });
+    })();
+  },[])
 
   return (
     <NavigationContainer>
